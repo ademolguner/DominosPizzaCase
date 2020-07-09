@@ -4,4 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DominosLocationMap.Core\DominosLocationMap.Core.csproj" />
+  </ItemGroup>
+
 </Project>
