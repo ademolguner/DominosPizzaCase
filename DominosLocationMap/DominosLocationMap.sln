@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DominosLocationMap.Core", "DominosLocationMap.Core\DominosLocationMap.Core.csproj", "{FD74547C-A0EA-44A0-A7CA-E54016E4AA07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DominosLocationMap.Core", "DominosLocationMap.Core\DominosLocationMap.Core.csproj", "{FD74547C-A0EA-44A0-A7CA-E54016E4AA07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DominosLocationMap.Entities", "DominosLocationMap.Entities\DominosLocationMap.Entities.csproj", "{91BDA665-6B49-4412-8277-11BB1FB6BE53}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DominosLocationMap.Entities", "DominosLocationMap.Entities\DominosLocationMap.Entities.csproj", "{91BDA665-6B49-4412-8277-11BB1FB6BE53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DominosLocationMap.DataAccess", "DominosLocationMap.DataAccess\DominosLocationMap.DataAccess.csproj", "{BA4D08E1-3651-42AD-A893-7B24F3D5815A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DominosLocationMap.DataAccess", "DominosLocationMap.DataAccess\DominosLocationMap.DataAccess.csproj", "{BA4D08E1-3651-42AD-A893-7B24F3D5815A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DominosLocationMap.Business", "DominosLocationMap.Business\DominosLocationMap.Business.csproj", "{6CA3524D-3387-4E53-BC68-2467EF7B43AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DominosLocationMap.Business", "DominosLocationMap.Business\DominosLocationMap.Business.csproj", "{6CA3524D-3387-4E53-BC68-2467EF7B43AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DominosLocationMap.WebAPI", "DominosLocationMap.WebAPI\DominosLocationMap.WebAPI.csproj", "{BBA62ADF-E476-4784-9AC9-23E3C162D73B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DominosLocationMap.WebAPI", "DominosLocationMap.WebAPI\DominosLocationMap.WebAPI.csproj", "{BBA62ADF-E476-4784-9AC9-23E3C162D73B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DominosLocationMap.ConsoleApp", "DominosLocationMap.ConsoleApp\DominosLocationMap.ConsoleApp.csproj", "{1C6BC387-A65B-41E4-AD4A-470F5B501811}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{BBA62ADF-E476-4784-9AC9-23E3C162D73B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBA62ADF-E476-4784-9AC9-23E3C162D73B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBA62ADF-E476-4784-9AC9-23E3C162D73B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C6BC387-A65B-41E4-AD4A-470F5B501811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C6BC387-A65B-41E4-AD4A-470F5B501811}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C6BC387-A65B-41E4-AD4A-470F5B501811}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C6BC387-A65B-41E4-AD4A-470F5B501811}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

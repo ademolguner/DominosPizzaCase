@@ -7,11 +7,24 @@ using System.Threading.Tasks;
 using AutoMapper;
 using DominosLocationMap.Business.Abstract;
 using DominosLocationMap.Business.Managers;
+using DominosLocationMap.Business.Queues.RabbitMq;
+using DominosLocationMap.Business.Queues.Redis;
+using DominosLocationMap.Core.CrossCutting.Caching;
+using DominosLocationMap.Core.CrossCutting.Caching.Redis;
+using DominosLocationMap.Core.CrossCutting.Logging;
+using DominosLocationMap.Core.CrossCutting.Logging.NLog;
+using DominosLocationMap.Core.Entities;
+using DominosLocationMap.Core.Entities.Options;
+using DominosLocationMap.Core.RabbitMQ;
+using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
 using DominosLocationMap.DataAccess.Abstract;
 using DominosLocationMap.DataAccess.Concrete.EntityFramework;
 using DominosLocationMap.DataAccess.Concrete.EntityFramework.DatbaseContext;
+using DominosLocationMap.Entities.Models.Locations;
+using DominosLocationMap.WebAPI.Configurations.Log;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,17 +48,53 @@ namespace DominosLocationMap.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //services.Configure<CookiePolicyOptions>(options =>
+            //{
+            //    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+            //    options.CheckConsentNeeded = context => true;
+            //    options.MinimumSameSitePolicy = SameSiteMode.None;
+            //});
+             
             services.AddControllers();
+            services.AddDbContext<DominosLocationMapDbContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DominosDb"]));
+
+
+            services.Configure<LocationOptions>(Configuration.GetSection("LocationOptions"));
+            services.Configure<RabbitMqOptions>(Configuration.GetSection("RabbitMqOptions"));
+            services.Configure<RedisOptions>(Configuration.GetSection("RedisOptions"));
+
+            var redisOptions = Configuration.GetSection("RedisOptions").Get<RedisOptions>();
+            services.AddMemoryCache();
+            services.AddDistributedRedisCache(options =>
+            {
+                options.InstanceName = redisOptions.InstanceName;
+                options.Configuration = redisOptions.Configuration;
+            });
+
+            
+            //Log Configurations
+            services.AddSingleton<ILogManager, NLogManager>();
+            services.AddNLogConfig("/nlog.config");
+
+            // caching 
+            services.AddSingleton<ICacheManager, RedisCacheManager>();
 
             // dto to entity model mapping
             services.AddAutoMapper(typeof(Startup));
 
-            // AddDependencyResolvers islemi
-            services.AddTransient<ILocationInfoService, LocationInfoManager>();
-            services.AddTransient<ILocationInfoDal, EfLocationInfoDal>();
-           
-            services.AddDbContext<DominosLocationMapDbContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DominosDb"]));
+            // AddDependencyResolvers islemi db operation objects
+            services.AddScoped<ILocationInfoService, LocationInfoManager>();
+            services.AddScoped<ILocationInfoDal, EfLocationInfoDal>();
 
+
+
+            services.AddScoped<IRabbitMqService, RabbitMqService>();
+            services.AddScoped<IRabbitMqConfiguration, RabbitMqConfiguration>();
+            services.AddScoped<IObjectDataConverter, ObjectDataConverterManager>();
+            services.AddScoped<IPublisherService, PublisherManager>();
+            services.AddScoped<IConsumerService, ConsumerManager>();
+
+            #region Swagger options
             services.AddSwaggerGen((options) =>
             {
                 options.SwaggerGeneratorOptions.IgnoreObsoleteActions = true;
@@ -66,13 +115,15 @@ namespace DominosLocationMap.WebAPI
                         Name = Configuration.GetSection("Swagger:SwaggerDoc:License:Name").Value,
                         Url = new Uri(Configuration.GetSection("Swagger:SwaggerDoc:License:Url").Value),
                     }
-                }); 
-                 
+                });
+
 
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
             });
+            #endregion
+
 
         }
 
@@ -94,6 +145,8 @@ namespace DominosLocationMap.WebAPI
 
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseCookiePolicy();
 
             app.UseRouting();
             app.UseCors(x => x
