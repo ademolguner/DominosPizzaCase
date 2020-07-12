@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/mssql/server:2017-latest
+FROM mcr.microsoft.com/mssql/server:2017-latest-ubuntu
 COPY . /
 
 RUN chmod +x ./db1/db-init.sh
