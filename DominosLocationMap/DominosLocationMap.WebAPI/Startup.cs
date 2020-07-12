@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using AutoMapper;
 using DominosLocationMap.Business.Abstract;
 using DominosLocationMap.Business.Managers;
@@ -13,7 +7,6 @@ using DominosLocationMap.Core.CrossCutting.Caching;
 using DominosLocationMap.Core.CrossCutting.Caching.Redis;
 using DominosLocationMap.Core.CrossCutting.Logging;
 using DominosLocationMap.Core.CrossCutting.Logging.NLog;
-using DominosLocationMap.Core.Entities;
 using DominosLocationMap.Core.Entities.Options;
 using DominosLocationMap.Core.RabbitMQ;
 using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
@@ -24,15 +17,14 @@ using DominosLocationMap.Entities.Models.Locations;
 using DominosLocationMap.WebAPI.Configurations.Log;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using System;
+using System.IO;
+using System.Reflection;
 
 namespace DominosLocationMap.WebAPI
 {
@@ -54,10 +46,12 @@ namespace DominosLocationMap.WebAPI
             //    options.CheckConsentNeeded = context => true;
             //    options.MinimumSameSitePolicy = SameSiteMode.None;
             //});
-             
-            services.AddControllers();
-            services.AddDbContext<DominosLocationMapDbContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DominosDb"]));
 
+            services.AddControllers();
+
+            services.AddScoped<ILocationInfoService, LocationInfoManager>();
+            services.AddScoped<ILocationInfoDal, EfLocationInfoDal>();
+            services.AddDbContext<DominosLocationMapDbContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DominosDb"]));
 
             services.Configure<LocationOptions>(Configuration.GetSection("LocationOptions"));
             services.Configure<RabbitMqOptions>(Configuration.GetSection("RabbitMqOptions"));
@@ -71,30 +65,28 @@ namespace DominosLocationMap.WebAPI
                 options.Configuration = redisOptions.Configuration;
             });
 
-            
             //Log Configurations
             services.AddSingleton<ILogManager, NLogManager>();
             services.AddNLogConfig("/nlog.config");
 
-            // caching 
+            // caching
             services.AddSingleton<ICacheManager, RedisCacheManager>();
 
             // dto to entity model mapping
             services.AddAutoMapper(typeof(Startup));
 
             // AddDependencyResolvers islemi db operation objects
-            services.AddScoped<ILocationInfoService, LocationInfoManager>();
-            services.AddScoped<ILocationInfoDal, EfLocationInfoDal>();
 
-
-
-            services.AddScoped<IRabbitMqService, RabbitMqService>();
             services.AddScoped<IRabbitMqConfiguration, RabbitMqConfiguration>();
-            services.AddScoped<IObjectDataConverter, ObjectDataConverterManager>();
+            services.AddScoped<IRabbitMqService, RabbitMqService>();
             services.AddScoped<IPublisherService, PublisherManager>();
-            services.AddScoped<IConsumerService, ConsumerManager>();
+            services.AddScoped<IObjectDataConverter, ObjectDataConverterManager>();
+
+            services.AddScoped<IConsumerService, DataBaseConsumerManager>();
+            services.AddScoped<IConsumerService, FileOperationConsumerManager>();
 
             #region Swagger options
+
             services.AddSwaggerGen((options) =>
             {
                 options.SwaggerGeneratorOptions.IgnoreObsoleteActions = true;
@@ -117,14 +109,12 @@ namespace DominosLocationMap.WebAPI
                     }
                 });
 
-
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
             });
-            #endregion
 
-
+            #endregion Swagger options
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -140,9 +130,7 @@ namespace DominosLocationMap.WebAPI
             {
                 c.SwaggerEndpoint(url: String.Format(Configuration.GetSection("Swagger:UseSwaggerUI:SwaggerEndpoint").Value, Configuration.GetSection("Swagger:SwaggerName").Value),
                     name: "Version CoreSwaggerWebAPI-1");
-
             });
-
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

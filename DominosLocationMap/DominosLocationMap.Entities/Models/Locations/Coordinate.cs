@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DominosLocationMap.Entities.Models.Locations
+﻿namespace DominosLocationMap.Entities.Models.Locations
 {
     public class Coordinate
     {

@@ -1,5 +1,4 @@
-﻿using DominosLocationMap.Core.CrossCutting.Logging;
-using NLog;
+﻿using NLog;
 
 namespace DominosLocationMap.Core.CrossCutting.Logging.NLog
 {

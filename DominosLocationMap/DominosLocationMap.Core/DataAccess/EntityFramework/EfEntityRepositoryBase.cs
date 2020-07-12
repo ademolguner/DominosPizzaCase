@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace DominosLocationMap.Core.DataAccess.EntityFramework
 {
@@ -12,13 +12,24 @@ namespace DominosLocationMap.Core.DataAccess.EntityFramework
     where TEntity : class, IEntity, new()
     where TContext : DbContext, new()
     {
-        public void Add(TEntity entity)
+        public TEntity Add(TEntity entity)
         {
             using (var context = new TContext())
             {
-                var addedEntity = context.Entry(entity);
+                var addedEntity = context.Entry<TEntity>(entity);
                 addedEntity.State = EntityState.Added;
-                context.SaveChanges();
+                context.SaveChangesAsync();
+                return entity;
+            }
+        }
+
+        public async Task<TEntity> AddAsync(TEntity entity)
+        {
+            using (var context = new TContext())
+            {
+                var addedEntity = await context.AddAsync(entity);
+                await context.SaveChangesAsync();
+                return entity;
             }
         }
 
@@ -40,8 +51,6 @@ namespace DominosLocationMap.Core.DataAccess.EntityFramework
             }
         }
 
-         
-
         public IList<TEntity> GetList(Expression<Func<TEntity, bool>> filter = null)
         {
             using (var context = new TContext())
@@ -52,14 +61,14 @@ namespace DominosLocationMap.Core.DataAccess.EntityFramework
             }
         }
 
-         
-        public void Update(TEntity entity)
+        public TEntity Update(TEntity entity)
         {
             using (var context = new TContext())
             {
                 var updatedEntity = context.Entry(entity);
                 updatedEntity.State = EntityState.Modified;
                 context.SaveChanges();
+                return entity;
             }
         }
     }

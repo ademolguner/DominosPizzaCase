@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DominosLocationMap.Core.Entities.Options
+﻿namespace DominosLocationMap.Core.Entities.Options
 {
-   public class RabbitMqOptions
+    public class RabbitMqOptions
     {
-        string HostName { get; }
-        string UserName { get; }
-        string Password { get; }
-        string Port { get; }
-        string VirtualHost { get; }
+        private string HostName { get; }
+        private string UserName { get; }
+        private string Password { get; }
+        private string Port { get; }
+        private string VirtualHost { get; }
     }
 }

@@ -1,5 +1,4 @@
-﻿using DominosLocationMap.Core.CrossCutting.Caching;
-using ServiceStack.Redis;
+﻿using ServiceStack.Redis;
 using StackExchange.Redis;
 using System;
 using System.Linq;

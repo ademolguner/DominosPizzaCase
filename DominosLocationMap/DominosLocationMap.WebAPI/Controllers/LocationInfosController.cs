@@ -1,16 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using DominosLocationMap.Business.Abstract;
-using DominosLocationMap.Core.RabbitMQ;
-using DominosLocationMap.Entities.ComplexTypes;
-using DominosLocationMap.Entities.Consts;
-using DominosLocationMap.Entities.Entities;
-using DominosLocationMap.Entities.Models.Queue;
+﻿using DominosLocationMap.Business.Abstract;
 using Microsoft.AspNetCore.Mvc;
-
+using System;
 
 namespace DominosLocationMap.WebAPI.Controllers
 {
@@ -18,57 +8,34 @@ namespace DominosLocationMap.WebAPI.Controllers
     [ApiController]
     public class LocationInfosController : ControllerBase
     {
-        private readonly IPublisherService _publisherService;
-        private readonly IMapper _mapper;
         private readonly ILocationInfoService _locationInfoService;
-        public LocationInfosController(IMapper mapper, ILocationInfoService locationInfoService, IPublisherService publisherService)
+
+        public LocationInfosController(ILocationInfoService locationInfoService)
         {
-            _mapper = mapper;
             _locationInfoService = locationInfoService;
-            _publisherService = publisherService;
-        }
-
-
-        // POST api/<LocationInfosController>
-        [HttpPost]
-        public void Post(LocationInfoInputDto infoInputDto)
-        {
-            var locationInfoEntity = _mapper.Map<LocationInfo>(infoInputDto);
-
-            // burada rabbitmq olucak
-            _locationInfoService.Add(locationInfoEntity);
         }
 
         // GET: api/<LocationInfosController>
         [HttpGet]
         public void GetLocationGenerate(long count)
         {
-            // 30 milyon adet koordinat noktasının
-            //Koordinatların tamamı Türkiye sınırları içinde rastgele olarak set edilmelidir
-            //Kaydı yapılmış olan koordinat noktalarının bir Queue aracılığıyla aralarındaki mesafenin kilometre
-            // cinsinden hesaplanıp bir txt dosyasına eklenmelidir.
+            long stepCount = 1000;
+            long packagesCount = Convert.ToInt64(count / stepCount);
+            long remainingCount = Convert.ToInt64(count % stepCount);
+            if (remainingCount != 0)
+                packagesCount += 1;
 
-            // 30 milyon koordinat alındı
-            
-            _publisherService.Enqueue(
-                                      PrepareMessages(count),
-                                      RabbitMqConsts.RabbitMqConstsList.DominosLocationReadDataQueue.ToString()
-                                    ); 
-        }
-
-        
-
-        private IEnumerable<LocationReadDataQueue> PrepareMessages(long count)
-        {
-            var messages = new List<LocationReadDataQueue>();
-            var coordinates = _locationInfoService.GetLocationGenerate(count);
-            
-            foreach (var item in coordinates)
-            { 
-                messages.Add(_mapper.Map<LocationReadDataQueue>(item));
+            for (int i = 0; i < packagesCount; i++)
+            {
+                if (i == packagesCount - 1)
+                {
+                    _locationInfoService.GetLocationGenerateOperationAsync(remainingCount);
+                }
+                else
+                {
+                    _locationInfoService.GetLocationGenerateOperationAsync(stepCount);
+                }
             }
-            return messages;
         }
-
     }
 }

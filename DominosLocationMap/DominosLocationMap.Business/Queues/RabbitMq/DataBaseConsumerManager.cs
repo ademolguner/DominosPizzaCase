@@ -1,25 +1,24 @@
 ﻿using DominosLocationMap.Business.Abstract;
 using DominosLocationMap.Core.RabbitMQ;
 using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
-using DominosLocationMap.Entities.ComplexTypes;
 using DominosLocationMap.Entities.Consts;
 using DominosLocationMap.Entities.Models.Queue;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace DominosLocationMap.Business.Queues.RabbitMq
 {
-    public class ConsumerManager : IConsumerService
+    public class DataBaseConsumerManager : IConsumerService
     {
         private SemaphoreSlim _semaphore;
+
         //olaylar
         public event EventHandler<LocationReadDataQueue> MessageReceived;
+
         public event EventHandler<LocationWriteDataQueue> MessageProcessed;
 
         private EventingBasicConsumer _consumer;
@@ -30,16 +29,12 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
         private readonly IObjectDataConverter _objectDataConverter;
         private readonly ILocationInfoService _locationInfoService;
 
-
-
-
-        public ConsumerManager(IRabbitMqService rabbitMqServices, IObjectDataConverter objectDataConverter, ILocationInfoService locationInfoService)
+        public DataBaseConsumerManager(IRabbitMqService rabbitMqServices, IObjectDataConverter objectDataConverter, ILocationInfoService locationInfoService)
         {
             _rabbitMqServices = rabbitMqServices;
             _objectDataConverter = objectDataConverter;
             _locationInfoService = locationInfoService ?? throw new ArgumentNullException(nameof(locationInfoService));
         }
-
 
         public async Task Start()
         {
@@ -49,7 +44,7 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                 _connection = _rabbitMqServices.GetConnection();
                 _channel = _rabbitMqServices.GetModel(_connection);
                 _channel.QueueDeclare(
-                                        queue: RabbitMqConsts.RabbitMqConstsList.DominosLocationReadDataQueue.ToString(),
+                                        queue: RabbitMqConsts.RabbitMqConstsList.DominosLocationDatabaseQueue.ToString(),
                                         durable: true,
                                         exclusive: false,
                                         autoDelete: false,
@@ -60,10 +55,10 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                 _consumer = new EventingBasicConsumer(_channel);
                 _consumer.Received += Consumer_Received;
                 await Task.FromResult(
-                                     _channel.BasicConsume(queue: RabbitMqConsts.RabbitMqConstsList.DominosLocationReadDataQueue.ToString(),
+                                     _channel.BasicConsume(queue: RabbitMqConsts.RabbitMqConstsList.DominosLocationDatabaseQueue.ToString(),
                                      autoAck: false,
-                                     /* autoAck: bir mesajı aldıktan sonra bunu anladığına       
-                                        dair(acknowledgment) kuyruğa bildirimde bulunur ya da timeout gibi vakalar oluştuğunda 
+                                     /* autoAck: bir mesajı aldıktan sonra bunu anladığına
+                                        dair(acknowledgment) kuyruğa bildirimde bulunur ya da timeout gibi vakalar oluştuğunda
                                         mesajı geri çevirmek(Discard) veya yeniden kuyruğa aldırmak(Re-Queue) için dönüşler yapar*/
                                      consumer: _consumer));
             }
@@ -72,8 +67,6 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                 throw new Exception(ex.InnerException.Message.ToString());
             }
         }
-
-
 
         private void Consumer_Received(object sender, BasicDeliverEventArgs ea)
         {
@@ -90,11 +83,15 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                         var task = _locationInfoService.GetLocationsDistanceAsync(message);
                         task.Wait();
                         var result = task.Result;
+
+                        var insertedTask = _locationInfoService.QueueDatabaseCreatedAfterSendFileProcess(result);
+                        insertedTask.Wait();
+
                         MessageProcessed?.Invoke(this, result);
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception(ex.InnerException.Message.ToString());
+                        //throw new Exception(ex.InnerException.Message.ToString());
                     }
                     finally
                     {

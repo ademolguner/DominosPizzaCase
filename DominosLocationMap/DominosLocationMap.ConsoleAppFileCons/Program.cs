@@ -15,13 +15,13 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace DominosLocationMap.ConsoleApp
+namespace DominosLocationMap.ConsoleAppFileCons
 {
     internal class Program
     {
         private static async Task Main()
         {
-            Console.WriteLine("RabbitMq.ConsumerConsole Program.cs Acıldı.");
+            Console.WriteLine("RabbitMq.FileOperationConsumerManager Program.cs Acıldı.");
 
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("project.json");
 
@@ -36,7 +36,7 @@ namespace DominosLocationMap.ConsoleApp
                .AddScoped<IRabbitMqConfiguration, RabbitMqConfiguration>()
                .AddScoped<IRabbitMqService, RabbitMqService>()
                .AddScoped<IObjectDataConverter, ObjectDataConverterManager>()
-               .AddScoped<IConsumerService, DataBaseConsumerManager>()
+               .AddScoped<IConsumerService, FileOperationConsumerManager>()
                .AddSingleton<ICacheManager, RedisCacheManager>()
                .AddScoped<ILocationInfoService, LocationInfoManager>()
                 .AddScoped<ILocationInfoDal, EfLocationInfoDal>()
@@ -50,10 +50,10 @@ namespace DominosLocationMap.ConsoleApp
                .BuildServiceProvider();
 
             var consumerService = serviceProvider.GetService<IConsumerService>();
-            Console.WriteLine("consumerService alındı.");
-            Console.WriteLine($"consumerService.Start() başladı: {DateTime.Now.ToShortTimeString()}");
+            Console.WriteLine("FileOperationConsumerManager alındı.");
+            Console.WriteLine($"FileOperationConsumerManager.Start() başladı: {DateTime.Now.ToShortTimeString()}");
             await consumerService.Start();
-            Console.WriteLine($"consumerService.Start() bitti:  {DateTime.Now.ToShortTimeString()}");
+            Console.WriteLine($"FileOperationConsumerManager.Start() bitti:  {DateTime.Now.ToShortTimeString()}");
         }
     }
 }

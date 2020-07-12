@@ -5,7 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Mappings\AutoMapping.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DominosLocationMap.DataAccess\DominosLocationMap.DataAccess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Mappings\" />
   </ItemGroup>
 
 </Project>
