@@ -3,7 +3,7 @@
   <PropertyGroup Label="Globals">
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
-    <ProjectGuid>f90e50da-91ae-4198-a8a7-db2e6806c340</ProjectGuid>
+    <ProjectGuid>6f005a28-1577-4622-a00b-76ea9d445380</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
     <DockerServiceName>dominoslocationmap.webapi</DockerServiceName>

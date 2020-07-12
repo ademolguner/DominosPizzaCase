@@ -13,7 +13,6 @@ using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
 using DominosLocationMap.DataAccess.Abstract;
 using DominosLocationMap.DataAccess.Concrete.EntityFramework;
 using DominosLocationMap.DataAccess.Concrete.EntityFramework.DatbaseContext;
-using DominosLocationMap.Entities.Models.Locations;
 using DominosLocationMap.WebAPI.Configurations.Log;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -40,8 +39,6 @@ namespace DominosLocationMap.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-             
-
             services.AddControllers();
 
             services.AddScoped<ILocationInfoService, LocationInfoManager>();

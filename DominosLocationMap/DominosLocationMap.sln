@@ -17,15 +17,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DominosLocationMap.ConsoleA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DominosLocationMap.ConsoleAppFileCons", "DominosLocationMap.ConsoleAppFileCons\DominosLocationMap.ConsoleAppFileCons.csproj", "{2C0DA161-695B-4AD9-A738-A786CDCC5DC5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "db", "db", "{3253A6CF-D729-4EEB-B36F-D17D5178DDA4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "db1", "db1", "{94389968-6C9D-4107-A8E9-F640D5E96216}"
 	ProjectSection(SolutionItems) = preProject
-		db\db-init.sh = db\db-init.sh
-		db\db-init.sql = db\db-init.sql
-		db\Dockerfile = db\Dockerfile
-		db\entrypoint.sh = db\entrypoint.sh
+		db1\db-init.sh = db1\db-init.sh
+		db1\db-init.sql = db1\db-init.sql
+		db1\Dockerfile = db1\Dockerfile
+		db1\entrypoint.sh = db1\entrypoint.sh
 	EndProjectSection
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{F90E50DA-91AE-4198-A8A7-DB2E6806C340}"
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{6F005A28-1577-4622-A00B-76EA9D445380}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,10 +61,10 @@ Global
 		{2C0DA161-695B-4AD9-A738-A786CDCC5DC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C0DA161-695B-4AD9-A738-A786CDCC5DC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C0DA161-695B-4AD9-A738-A786CDCC5DC5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F90E50DA-91AE-4198-A8A7-DB2E6806C340}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F90E50DA-91AE-4198-A8A7-DB2E6806C340}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F90E50DA-91AE-4198-A8A7-DB2E6806C340}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F90E50DA-91AE-4198-A8A7-DB2E6806C340}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F005A28-1577-4622-A00B-76EA9D445380}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F005A28-1577-4622-A00B-76EA9D445380}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F005A28-1577-4622-A00B-76EA9D445380}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F005A28-1577-4622-A00B-76EA9D445380}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

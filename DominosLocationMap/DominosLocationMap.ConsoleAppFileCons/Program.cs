@@ -10,7 +10,6 @@ using DominosLocationMap.Core.RabbitMQ;
 using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
 using DominosLocationMap.DataAccess.Abstract;
 using DominosLocationMap.DataAccess.Concrete.EntityFramework;
-using DominosLocationMap.Entities.Models.Locations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;

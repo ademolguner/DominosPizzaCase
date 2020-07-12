@@ -132,7 +132,6 @@ namespace DominosLocationMap.Business.Managers
 
         #endregion Public metotolar
 
-
         #region Private - yardımcı metotlar
 
         private IEnumerable<LocationReadDataQueue> PrepareMessages(long count)
@@ -263,6 +262,5 @@ namespace DominosLocationMap.Business.Managers
         }
 
         #endregion Private - yardımcı metotlar
-
     }
 }
