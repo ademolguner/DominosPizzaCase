@@ -2,6 +2,7 @@
 using DominosLocationMap.Business.Abstract;
 using DominosLocationMap.Business.Queues.Redis;
 using DominosLocationMap.Core.CrossCutting.Caching;
+using DominosLocationMap.Core.Entities.Options;
 using DominosLocationMap.Core.RabbitMQ;
 using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
 using DominosLocationMap.DataAccess.Abstract;
@@ -75,7 +76,7 @@ namespace DominosLocationMap.Business.Managers
 
             LocationWriteDataQueue locationWriteDataQueue = new LocationWriteDataQueue();
             locationWriteDataQueue.LocationReadDataQueue = locationReadDataQueue;
-            locationWriteDataQueue.Distance = distance(locationReadDataQueue.LocationInfoInputDto.SourceLatitude,
+            locationWriteDataQueue.Distance = DistanceCalculate(locationReadDataQueue.LocationInfoInputDto.SourceLatitude,
                                                         locationReadDataQueue.LocationInfoInputDto.SourceLongitude,
                                                         locationReadDataQueue.LocationInfoInputDto.DestinationLatitude,
                                                         locationReadDataQueue.LocationInfoInputDto.DestinationLongitude,
@@ -95,7 +96,6 @@ namespace DominosLocationMap.Business.Managers
                 await QueueDatabaseCreatedAfterSendFileProcess(locationWriteDataQueue);
             }
             var data = await Task.FromResult(locationWriteDataQueue);
-            // await dosyayazAsync(data);
             return data;
         }
 
@@ -131,6 +131,7 @@ namespace DominosLocationMap.Business.Managers
         }
 
         #endregion Public metotolar
+
 
         #region Private - yardımcı metotlar
 
@@ -187,7 +188,7 @@ namespace DominosLocationMap.Business.Managers
             return point;
         }
 
-        private double distance(double lat1, double lon1, double lat2, double lon2, char unit)
+        private double DistanceCalculate(double lat1, double lon1, double lat2, double lon2, char unit)
         {
             if ((lat1 == lat2) && (lon1 == lon2))
             {
@@ -196,9 +197,9 @@ namespace DominosLocationMap.Business.Managers
             else
             {
                 double theta = lon1 - lon2;
-                double dist = Math.Sin(deg2rad(lat1)) * Math.Sin(deg2rad(lat2)) + Math.Cos(deg2rad(lat1)) * Math.Cos(deg2rad(lat2)) * Math.Cos(deg2rad(theta));
+                double dist = Math.Sin(Deg2Rad(lat1)) * Math.Sin(Deg2Rad(lat2)) + Math.Cos(Deg2Rad(lat1)) * Math.Cos(Deg2Rad(lat2)) * Math.Cos(Deg2Rad(theta));
                 dist = Math.Acos(dist);
-                dist = rad2deg(dist);
+                dist = Rad2Deg(dist);
                 dist = dist * 60 * 1.1515;
                 if (unit == 'K')
                 {
@@ -212,12 +213,12 @@ namespace DominosLocationMap.Business.Managers
             }
         }
 
-        private double deg2rad(double deg)
+        private double Deg2Rad(double deg)
         {
             return (deg * Math.PI / 180.0);
         }
 
-        private double rad2deg(double rad)
+        private double Rad2Deg(double rad)
         {
             return (rad / Math.PI * 180.0);
         }

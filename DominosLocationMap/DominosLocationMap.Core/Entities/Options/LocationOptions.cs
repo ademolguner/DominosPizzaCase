@@ -1,4 +1,4 @@
-﻿namespace DominosLocationMap.Entities.Models.Locations
+﻿namespace DominosLocationMap.Core.Entities.Options
 {
     public class LocationOptions
     {

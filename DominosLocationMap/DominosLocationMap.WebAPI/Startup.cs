@@ -7,6 +7,7 @@ using DominosLocationMap.Core.CrossCutting.Caching;
 using DominosLocationMap.Core.CrossCutting.Caching.Redis;
 using DominosLocationMap.Core.CrossCutting.Logging;
 using DominosLocationMap.Core.CrossCutting.Logging.NLog;
+using DominosLocationMap.Core.Entities.Options;
 using DominosLocationMap.Core.RabbitMQ;
 using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
 using DominosLocationMap.DataAccess.Abstract;
@@ -39,12 +40,7 @@ namespace DominosLocationMap.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.Configure<CookiePolicyOptions>(options =>
-            //{
-            //    // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-            //    options.CheckConsentNeeded = context => true;
-            //    options.MinimumSameSitePolicy = SameSiteMode.None;
-            //});
+             
 
             services.AddControllers();
 
