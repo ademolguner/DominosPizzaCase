@@ -7,7 +7,6 @@ using DominosLocationMap.Core.CrossCutting.Caching;
 using DominosLocationMap.Core.CrossCutting.Caching.Redis;
 using DominosLocationMap.Core.CrossCutting.Logging;
 using DominosLocationMap.Core.CrossCutting.Logging.NLog;
-using DominosLocationMap.Core.Entities.Options;
 using DominosLocationMap.Core.RabbitMQ;
 using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
 using DominosLocationMap.DataAccess.Abstract;
@@ -54,7 +53,6 @@ namespace DominosLocationMap.WebAPI
             services.AddDbContext<DominosLocationMapDbContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DominosDb"]));
 
             services.Configure<LocationOptions>(Configuration.GetSection("LocationOptions"));
-            services.Configure<RabbitMqOptions>(Configuration.GetSection("RabbitMqOptions"));
             services.Configure<RedisOptions>(Configuration.GetSection("RedisOptions"));
 
             var redisOptions = Configuration.GetSection("RedisOptions").Get<RedisOptions>();

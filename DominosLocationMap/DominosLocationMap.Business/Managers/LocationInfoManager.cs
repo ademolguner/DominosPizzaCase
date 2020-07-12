@@ -11,7 +11,7 @@ using DominosLocationMap.Entities.Entities;
 using DominosLocationMap.Entities.Models.Locations;
 using DominosLocationMap.Entities.Models.Queue;
 using Microsoft.Extensions.Caching.Distributed;
-using ServiceStack;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,36 +24,34 @@ namespace DominosLocationMap.Business.Managers
     public class LocationInfoManager : ILocationInfoService
     {
         private readonly ILocationInfoDal _locationInfoDal;
-        private readonly IOptions<LocationOptions> _options;
-        private readonly IOptions<RedisOptions> _redisOption;
+        private readonly LocationOptions _locationOptions;
+        private readonly RedisOptions _redisOptions;
         private readonly ICacheManager _cacheManager;
         private readonly IObjectDataConverter _objectDataConverter;
         private readonly IDistributedCache _distributedCache;
         private readonly IPublisherService _publisherService;
         private readonly IMapper _mapper;
 
-        public LocationInfoManager(IPublisherService publisherService, IMapper mapper, ILocationInfoDal locationInfoDal, ICacheManager cacheManager, IObjectDataConverter objectDataConverter, IDistributedCache distributedCache/*, IOptions<LocationOptions> options*/)
+        public LocationInfoManager(IPublisherService publisherService,
+            IMapper mapper,
+            ILocationInfoDal locationInfoDal,
+            ICacheManager cacheManager,
+            IObjectDataConverter objectDataConverter,
+            IDistributedCache distributedCache,
+            IOptions<LocationOptions> locationOptions,
+            IOptions<RedisOptions> redisOptions)
         {
             _locationInfoDal = locationInfoDal;
             _mapper = mapper;
             _publisherService = publisherService;
             _cacheManager = cacheManager;
-            //_options = options;
             _objectDataConverter = objectDataConverter;
             _distributedCache = distributedCache;
+            _locationOptions = locationOptions.Value;
+            _redisOptions = redisOptions.Value;
         }
 
-        public DominosLocation Add(DominosLocation dominosLocation)
-        {
-            _locationInfoDal.Add(dominosLocation);
-            return dominosLocation;
-        }
-
-        public async Task<DominosLocation> AddAsync(DominosLocation dominosLocation)
-        {
-            var result = await _locationInfoDal.AddAsync(dominosLocation);
-            return result;
-        }
+        #region Public metotolar
 
         public void GetLocationGenerateOperation(long count)
         {
@@ -71,27 +69,20 @@ namespace DominosLocationMap.Business.Managers
                                     );
         }
 
-        private List<LocationWriteDataQueue> locationWriteDataQueues = new List<LocationWriteDataQueue>();
-
         public async Task<LocationWriteDataQueue> GetLocationsDistanceAsync(LocationReadDataQueue locationReadDataQueue)
         {
-            // database e yazacak işlemler
-
-            Console.WriteLine($"RabbitMQProcessor GetLocationsDistance method  => Calısma zamanı: {DateTime.Now.ToShortTimeString()}");
+            Console.WriteLine($"RabbitMQProcessor DataBaseConsumerManager GetLocationsDistance method  => Calısma zamanı: {DateTime.Now.ToShortTimeString()}");
 
             LocationWriteDataQueue locationWriteDataQueue = new LocationWriteDataQueue();
             locationWriteDataQueue.LocationReadDataQueue = locationReadDataQueue;
             locationWriteDataQueue.Distance = distance(locationReadDataQueue.LocationInfoInputDto.SourceLatitude,
-                locationReadDataQueue.LocationInfoInputDto.SourceLongitude,
-                locationReadDataQueue.LocationInfoInputDto.DestinationLatitude,
-                locationReadDataQueue.LocationInfoInputDto.DestinationLongitude,
-                'K'
-                );
+                                                        locationReadDataQueue.LocationInfoInputDto.SourceLongitude,
+                                                        locationReadDataQueue.LocationInfoInputDto.DestinationLatitude,
+                                                        locationReadDataQueue.LocationInfoInputDto.DestinationLongitude,
+                                                        'K'
+                                                       );
 
-            //gereksiz olabilir
-            locationWriteDataQueues.Add(locationWriteDataQueue);
-
-            var a = await _locationInfoDal.AddAsync(new DominosLocation
+            var a = await AddAsync(new DominosLocation
             {
                 DestinationLatitude = locationWriteDataQueue.LocationReadDataQueue.LocationInfoInputDto.DestinationLatitude,
                 DestinationLongitude = locationWriteDataQueue.LocationReadDataQueue.LocationInfoInputDto.DestinationLongitude,
@@ -104,26 +95,91 @@ namespace DominosLocationMap.Business.Managers
                 await QueueDatabaseCreatedAfterSendFileProcess(locationWriteDataQueue);
             }
             var data = await Task.FromResult(locationWriteDataQueue);
-            await dosyayazAsync(data);
+            // await dosyayazAsync(data);
             return data;
+        }
+
+        public DominosLocation Add(DominosLocation dominosLocation)
+        {
+            _locationInfoDal.Add(dominosLocation);
+            return dominosLocation;
+        }
+
+        public async Task<DominosLocation> AddAsync(DominosLocation dominosLocation)
+        {
+            var result = await _locationInfoDal.AddAsync(dominosLocation);
+            return result;
         }
 
         public async Task QueueDatabaseCreatedAfterSendFileProcess(LocationWriteDataQueue locationWriteDataQueue)
         {
             List<LocationWriteDataQueue> locationWriteDataQueues = new List<LocationWriteDataQueue>();
             locationWriteDataQueues.Add(locationWriteDataQueue);
-            _publisherService.Enqueue(
-                                locationWriteDataQueues,
-                                RabbitMqConsts.RabbitMqConstsList.DominosLocationFileOptionQueue.ToString()
-                              );
+            await _publisherService.EnqueueAsync(
+                                 locationWriteDataQueues,
+                                 RabbitMqConsts.RabbitMqConstsList.DominosLocationFileOptionQueue.ToString()
+                               );
+        }
+
+        public async Task<bool> FileWritingOperation(LocationWriteDataQueue locationWriteDataQueue)
+        {
+            Console.WriteLine($"RabbitMQProcessor FileOperationConsumerManager FileWritingOperation  method  => Calısma zamanı: {DateTime.Now.ToShortTimeString()}");
+            var fileRootAndName = GetFileOutputOperation();
+            ProcessWrite(locationWriteDataQueue, fileRootAndName).Wait();
+            var data = await Task.FromResult(true);
+            return data;
+        }
+
+        #endregion Public metotolar
+
+        #region Private - yardımcı metotlar
+
+        private IEnumerable<LocationReadDataQueue> PrepareMessages(long count)
+        {
+            var messages = new List<LocationReadDataQueue>();
+            var coordinates = GetLocationGenerate(count);
+
+            foreach (var item in coordinates)
+            {
+                messages.Add(_mapper.Map<LocationReadDataQueue>(item));
+            }
+            return messages;
+        }
+
+        public List<LocationReadDataQueue> GetLocationGenerate(long count)
+        {
+            List<LocationReadDataQueue> result = new List<LocationReadDataQueue>();
+            for (int i = 0; i < count;)
+            {
+                var destinationPoint = GetLocation();
+                var sourcePoint = GetLocation();
+
+                LocationReadDataQueue point = new LocationReadDataQueue();
+                point.LocationInfoInputDto = new LocationInfoInputDto()
+                {
+                    DestinationLatitude = destinationPoint.Latitude,
+                    DestinationLongitude = destinationPoint.Longitude,
+                    SourceLatitude = sourcePoint.Latitude,
+                    SourceLongitude = sourcePoint.Longitude
+                };
+                if (result.Where(c => c.LocationInfoInputDto.DestinationLatitude == point.LocationInfoInputDto.DestinationLatitude
+                                  && c.LocationInfoInputDto.DestinationLongitude == point.LocationInfoInputDto.DestinationLongitude
+                                  && c.LocationInfoInputDto.SourceLatitude == point.LocationInfoInputDto.SourceLatitude
+                                  && c.LocationInfoInputDto.SourceLongitude == point.LocationInfoInputDto.SourceLongitude).Count() == 0)
+                {
+                    i++;
+                    result.Add(point);
+                }
+            }
+            return result;
         }
 
         private Coordinate GetLocation()
         {
-            double minLon = 26;
-            double maxLon = 45;
-            double minLat = 36;
-            double maxLat = 42;
+            double minLon = _locationOptions.MinLongitude;
+            double maxLon = _locationOptions.MaxLongitude;
+            double minLat = _locationOptions.MinLatitude;
+            double maxLat = _locationOptions.MaxLatitude;
             Random r = new Random();
             Coordinate point = new Coordinate();
             point.Latitude = r.NextDouble() * (maxLat - minLat) + minLat;
@@ -166,58 +222,6 @@ namespace DominosLocationMap.Business.Managers
             return (rad / Math.PI * 180.0);
         }
 
-        public List<LocationReadDataQueue> GetLocationGenerate(long count)
-        {
-            List<LocationReadDataQueue> result = new List<LocationReadDataQueue>();
-            for (int i = 0; i < count;)
-            {
-                var destinationPoint = GetLocation();
-                var sourcePoint = GetLocation();
-
-                LocationReadDataQueue point = new LocationReadDataQueue();
-                point.LocationInfoInputDto = new LocationInfoInputDto()
-                {
-                    DestinationLatitude = destinationPoint.Latitude,
-                    DestinationLongitude = destinationPoint.Longitude,
-                    SourceLatitude = sourcePoint.Latitude,
-                    SourceLongitude = sourcePoint.Longitude
-                };
-                if (result.Where(c => c.LocationInfoInputDto.DestinationLatitude == point.LocationInfoInputDto.DestinationLatitude
-                                  && c.LocationInfoInputDto.DestinationLongitude == point.LocationInfoInputDto.DestinationLongitude
-                                  && c.LocationInfoInputDto.SourceLatitude == point.LocationInfoInputDto.SourceLatitude
-                                  && c.LocationInfoInputDto.SourceLongitude == point.LocationInfoInputDto.SourceLongitude).Count() == 0)
-                {
-                    i++;
-                    result.Add(point);
-                }
-                else
-                {
-                }
-            }
-            return result;
-        }
-
-        private IEnumerable<LocationReadDataQueue> PrepareMessages(long count)
-        {
-            var messages = new List<LocationReadDataQueue>();
-            var coordinates = GetLocationGenerate(count);
-
-            foreach (var item in coordinates)
-            {
-                messages.Add(_mapper.Map<LocationReadDataQueue>(item));
-            }
-            return messages;
-        }
-
-        public async Task<bool> FileReadingOperation(LocationWriteDataQueue locationWriteDataQueue)
-        {
-            Console.WriteLine($"RabbitMQProcessor FileReadingOperation method  => Calısma zamanı: {DateTime.Now.ToShortTimeString()}");
-            var fileRootAndName = GetFileOutputOperation();
-            ProcessWrite(locationWriteDataQueue, fileRootAndName).Wait();
-            var data = await Task.FromResult(true);
-            return data;
-        }
-
         private string GetFileOutputOperation()
         {
             string folderRootName = @"C:\DominosCoordinates";
@@ -228,7 +232,9 @@ namespace DominosLocationMap.Business.Managers
 
             string fileRootAndName = @"C:\DominosCoordinates\Output.txt";
             if (!File.Exists(fileRootAndName))
-            { FileInfo fi = new FileInfo(fileRootAndName); }
+            {
+                FileInfo fi = new FileInfo(fileRootAndName);
+            }
 
             return fileRootAndName;
         }
@@ -255,70 +261,7 @@ namespace DominosLocationMap.Business.Managers
             };
         }
 
-        public async Task dosyayazAsync(LocationWriteDataQueue locationWriteDataQueue)
-        {
-            //var cacheKey = "DominosRedis";
-            //var existingTime = _distributedCache.GetString(cacheKey);
-            //if (!string.IsNullOrEmpty(existingTime))
-            //{
-            //    var dede = _distributedCache.GetString(cacheKey);
-            //}
-            //else
-            //{
-            //    existingTime = DateTime.UtcNow.ToString();
-            //    _distributedCache.SetString(cacheKey, _objectDataConverter.ObjectToJson<LocationWriteDataQueue>(locationWriteDataQueue));
+        #endregion Private - yardımcı metotlar
 
-            //}
-
-            //string path = @"c:\temp\MyTest.txt";
-
-            //// This text is added only once to the file.
-            //if (!File.Exists(path))
-            //{
-            //    // Create a file to write to.
-            //    using (StreamWriter sw = File.CreateText(path))
-            //    {
-            //        sw.WriteLine("Hello");
-            //        sw.WriteLine("And");
-            //        sw.WriteLine("Welcome");
-            //    }
-            //}
-
-            //// This text is always added, making the file longer over time
-            //// if it is not deleted.
-            //using (StreamWriter sw = File.AppendText(path))
-            //{
-            //    sw.WriteLine("This");
-            //    sw.WriteLine("is Extra");
-            //    sw.WriteLine("Text");
-            //}
-
-            // Open the file to read from.
-            //using (StreamReader sr = File.OpenText(path))
-            //{
-            //    string s = "";
-            //    while ((s = sr.ReadLine()) != null)
-            //    {
-            //        Console.WriteLine(s);
-            //    }
-            //}
-            //string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            //string text = "First line" + Environment.NewLine;
-
-            //    File.WriteAllText(Path.Combine(docPath, "WriteFile.txt"), locationWriteDataQueue.Distance.ToString());
-
-            //_cacheManager.Add("OutputtxtCache", locationWriteDataQueue);
-
-            //// Set a variable to the Documents path.
-
-            //// Write the text to a new file named "WriteFile.txt".
-            //File.WriteAllText(Path.Combine(docPath, "WriteFile.txt"), text);
-
-            //// Create a string array with the additional lines of text
-            //string[] lines = { "New line 1", "New line 2" };
-
-            //// Append new lines of text to the file
-            //File.AppendAllLines(Path.Combine(docPath, "WriteFile.txt"), lines);
-        }
     }
 }

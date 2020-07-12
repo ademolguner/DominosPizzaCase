@@ -18,6 +18,6 @@ namespace DominosLocationMap.Business.Abstract
 
         Task QueueDatabaseCreatedAfterSendFileProcess(LocationWriteDataQueue locationWriteDataQueue);
 
-        Task<bool> FileReadingOperation(LocationWriteDataQueue locationWriteDataQueue);
+        Task<bool> FileWritingOperation(LocationWriteDataQueue locationWriteDataQueue);
     }
 }

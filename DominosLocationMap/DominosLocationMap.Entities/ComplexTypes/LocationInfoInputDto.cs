@@ -1,6 +1,8 @@
-﻿namespace DominosLocationMap.Entities.ComplexTypes
+﻿using DominosLocationMap.Core.Entities;
+
+namespace DominosLocationMap.Entities.ComplexTypes
 {
-    public class LocationInfoInputDto//:IDto
+    public class LocationInfoInputDto : IDto
     {
         public double SourceLatitude { get; set; }
         public double SourceLongitude { get; set; }

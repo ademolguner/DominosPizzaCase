@@ -78,18 +78,18 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                     {
                         var body = Encoding.UTF8.GetBytes(_objectDataConverter.ObjectToJson(queueDataModel));
                         _channel.BasicPublish(exchange: "",
-                                             routingKey: queueName,
-                                             mandatory: false,
-                                             basicProperties: properties,
-                                             body: body);
+                                            routingKey: queueName,
+                                            mandatory: false,
+                                            basicProperties: properties,
+                                            body: body);
                     }
                 }
             }
             catch (Exception ex)
             {
                 //loglama yapılabilir
-                //throw new Exception(ex.InnerException.Message.ToString());
             }
+            await Task.CompletedTask;
         }
     }
 }

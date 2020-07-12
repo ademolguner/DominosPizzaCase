@@ -57,9 +57,6 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                 await Task.FromResult(
                                      _channel.BasicConsume(queue: RabbitMqConsts.RabbitMqConstsList.DominosLocationFileOptionQueue.ToString(),
                                      autoAck: false,
-                                     /* autoAck: bir mesajı aldıktan sonra bunu anladığına
-                                        dair(acknowledgment) kuyruğa bildirimde bulunur ya da timeout gibi vakalar oluştuğunda
-                                        mesajı geri çevirmek(Discard) veya yeniden kuyruğa aldırmak(Re-Queue) için dönüşler yapar*/
                                      consumer: _consumer));
             }
             catch (Exception ex)
@@ -80,27 +77,27 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                 {
                     try
                     {
-                        var task = _locationInfoService.FileReadingOperation(message);
+                        var task = _locationInfoService.FileWritingOperation(message);
                         task.Wait();
                         var result = task.Result;
                         MessageProcessed?.Invoke(this, result);
                     }
                     catch (Exception ex)
                     {
+                        //log
                         //throw new Exception(ex.InnerException.Message.ToString());
                     }
                     finally
                     {
-                        // Teslimat Onayı
                         _channel.BasicAck(ea.DeliveryTag, false);
-                        // akışı - thread'i serbest bırakıyoruz ek thread alabiliriz.
                         _semaphore.Release();
                     }
                 });
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.InnerException.Message.ToString());
+                //loglama
+                //throw new Exception(ex.InnerException.Message.ToString());
             }
         }
 

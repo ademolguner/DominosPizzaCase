@@ -9,6 +9,7 @@ using DominosLocationMap.Core.RabbitMQ;
 using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
 using DominosLocationMap.DataAccess.Abstract;
 using DominosLocationMap.DataAccess.Concrete.EntityFramework;
+using DominosLocationMap.Entities.Models.Locations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -29,11 +30,13 @@ namespace DominosLocationMap.ConsoleApp
             var configuration = builder.Build();
 
             var redisOptions = configuration.GetSection("RedisOptions").Get<RedisOptions>();
+            var locationOptions = configuration.GetSection("LocationOptions").Get<LocationOptions>();
+
+            //configuration.Bind("RabbitMqOptions", rabbitMqOptions);
 
             var serviceProvider = new ServiceCollection()
                .AddSingleton<IConfiguration>(configuration)
-
-               .AddScoped<IRabbitMqConfiguration, RabbitMqConfiguration>()
+                .AddScoped<IRabbitMqConfiguration, RabbitMqConfiguration>()
                .AddScoped<IRabbitMqService, RabbitMqService>()
                .AddScoped<IObjectDataConverter, ObjectDataConverterManager>()
                .AddScoped<IConsumerService, DataBaseConsumerManager>()
@@ -47,6 +50,7 @@ namespace DominosLocationMap.ConsoleApp
                    option.Configuration = redisOptions.Configuration;
                    option.InstanceName = redisOptions.InstanceName;
                })
+
                .BuildServiceProvider();
 
             var consumerService = serviceProvider.GetService<IConsumerService>();

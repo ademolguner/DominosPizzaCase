@@ -16,7 +16,6 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
     {
         private SemaphoreSlim _semaphore;
 
-        //olaylar
         public event EventHandler<LocationReadDataQueue> MessageReceived;
 
         public event EventHandler<LocationWriteDataQueue> MessageProcessed;
@@ -57,14 +56,11 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                 await Task.FromResult(
                                      _channel.BasicConsume(queue: RabbitMqConsts.RabbitMqConstsList.DominosLocationDatabaseQueue.ToString(),
                                      autoAck: false,
-                                     /* autoAck: bir mesajı aldıktan sonra bunu anladığına
-                                        dair(acknowledgment) kuyruğa bildirimde bulunur ya da timeout gibi vakalar oluştuğunda
-                                        mesajı geri çevirmek(Discard) veya yeniden kuyruğa aldırmak(Re-Queue) için dönüşler yapar*/
                                      consumer: _consumer));
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.InnerException.Message.ToString());
+                //throw new Exception(ex.InnerException.Message.ToString());
             }
         }
 
@@ -95,9 +91,7 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                     }
                     finally
                     {
-                        // Teslimat Onayı
                         _channel.BasicAck(ea.DeliveryTag, false);
-                        // akışı - thread'i serbest bırakıyoruz ek thread alabiliriz.
                         _semaphore.Release();
                     }
                 });

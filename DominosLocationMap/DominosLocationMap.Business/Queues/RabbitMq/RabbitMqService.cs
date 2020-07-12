@@ -23,9 +23,9 @@ namespace DominosLocationMap.Business.Queues.RabbitMq
                 {
                     HostName = _rabbitMQConfiguration.HostName,
                     UserName = _rabbitMQConfiguration.UserName,
-                    Password = _rabbitMQConfiguration.Password
-                    //VirtualHost=_rabbitMQConfiguration.VirtualHost
-                    //Port = AmqpTcpEndpoint.UseDefaultPort// Convert.ToInt32(_rabbitMQConfiguration.Port)
+                    Password = _rabbitMQConfiguration.Password,
+                    VirtualHost = _rabbitMQConfiguration.VirtualHost,
+                    Port = AmqpTcpEndpoint.UseDefaultPort// Convert.ToInt32(_rabbitMQConfiguration.Port)
                 };
 
                 // Otomatik bağlantı kurtarmayı etkinleştirmek için,
