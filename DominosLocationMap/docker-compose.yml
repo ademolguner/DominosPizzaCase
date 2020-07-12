@@ -1,0 +1,33 @@
+version: "3.4"
+
+services:
+  dominoslocationmap.webapi:
+    image: ${DOCKER_REGISTRY-}dominoslocationmapwebapi
+    build:
+      context: .
+      dockerfile: DominosLocationMap.WebAPI/Dockerfile
+    depends_on:
+      - db
+      - rabbitmq
+
+  rabbitmq:
+      image: rabbitmq:3-management-alpine
+      container_name: rabbitmq
+    environment:
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      ports:
+      - 5672:5672
+      - 15672:15672
+
+  db:
+    build: ./db
+      environment:
+      SA_PASSWORD: "Besiktas1903"
+      ACCEPT_EULA: "Y"
+      MSSQL_AGENT_ENABLED: "true"
+    ports:
+      - "1433:1433"
+    container_name: db
+    hostname: db
