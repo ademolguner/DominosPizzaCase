@@ -13,7 +13,7 @@ using DominosLocationMap.Core.Utilities.Helpers.DataConvertHelper;
 using DominosLocationMap.DataAccess.Abstract;
 using DominosLocationMap.DataAccess.Concrete.EntityFramework;
 using DominosLocationMap.DataAccess.Concrete.EntityFramework.DatbaseContext;
-using DominosLocationMap.WebAPI.Configurations.Log;
+using DominosLocationMap.WebAPI.Configurations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
